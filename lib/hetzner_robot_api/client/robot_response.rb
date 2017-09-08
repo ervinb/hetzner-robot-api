@@ -3,23 +3,14 @@ module HetznerRobotApi
     class RobotResponse
       attr_reader :errors
 
-      def initialize(hash)
-        hash.each do |key, value|
-          value = RobotResponse.new(value) if value.class == Hash
-
-          self.instance_variable_set("@#{key}", value)
-          self.class.send(:define_method, key, proc{ self.instance_variable_get("@#{key}") })
-        end
-      end
-
       def self.construct(response)
-        parsed_response = JSON.parse(response.body)
+        parsed_response = JSON.parse(response.body, :object_class => OpenStruct)
 
-        if parsed_response.class == Array
-          parsed_response.collect{|item| RobotResponse.new(item)}
-        else
-          RobotResponse.new(parsed_response)
-        end
+       parsed_response.length == 1 ? parsed_response.first : parsed_response
+      rescue JSON::ParserError, TypeError => e
+        puts "Not a string, or not a valid JSON"
+
+        raise e
       end
     end
   end
