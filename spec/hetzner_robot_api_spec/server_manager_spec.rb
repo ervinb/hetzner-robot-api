@@ -37,4 +37,12 @@ describe HetznerRobotApi::ServerManager do
       end
     end
   end
+
+  describe "print_formatted_server_list" do
+    it "prints a table with the servers" do
+      server = server_d10_1.server
+
+      expect{ described_class.print_formatted_server_list(servers, [:server_name, :server_ip]) }.to output(/#{server.server_name} \| #{server.server_ip}/).to_stdout
+    end
+  end
 end
