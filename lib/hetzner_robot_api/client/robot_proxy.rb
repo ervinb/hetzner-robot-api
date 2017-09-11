@@ -1,5 +1,3 @@
-require "byebug"
-
 module HetznerRobotApi
   class Client
     class RobotProxy
