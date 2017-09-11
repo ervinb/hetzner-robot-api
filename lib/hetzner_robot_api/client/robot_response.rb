@@ -9,6 +9,7 @@ module HetznerRobotApi
        parsed_response.length == 1 ? parsed_response.first : parsed_response
       rescue JSON::ParserError, TypeError => e
         puts "Not a string, or not a valid JSON"
+        puts "Response: #{response}"
 
         raise e
       end
