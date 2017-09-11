@@ -4,7 +4,7 @@ FactoryGirl.define do
   factory :server, class: OpenStruct do
     ignore do
       sequence(:server_ip) {|n| "1.2.3.#{n}"}
-      server_number SecureRandom.random_number(100)
+      sequence(:server_number) {|n| n }
       server_name   ""
       product       "EX41S-SSD"
       dc            "10"
