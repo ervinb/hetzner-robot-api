@@ -33,12 +33,12 @@ describe HetznerRobotApi::Client::RobotProxy do
   describe "#url" do
     before do
       @proxy = described_class.new
-      @proxy.append("user")
-      @proxy.append("profile")
+      @proxy.append("server")
+      @proxy.append("1_2_3_4")
     end
 
     it "generates the correct URL" do
-      expect(@proxy.url).to eq("https://robot-ws.your-server.de/user/profile")
+      expect(@proxy.url).to eq("https://robot-ws.your-server.de/server/1.2.3.4")
     end
   end
 end
