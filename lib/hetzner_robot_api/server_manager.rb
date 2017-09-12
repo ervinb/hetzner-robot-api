@@ -18,7 +18,7 @@ module HetznerRobotApi
     ## :filters => { :dc => "10" } : will return all servers from DC10
     ## Supports wildcards ? (a single character) and * (any character(s))
     ## or regular expressions
-    def create_server_list(options = {})
+    def fetch_server_list(options = {})
       defaults = {
         :filters => {}
       }
