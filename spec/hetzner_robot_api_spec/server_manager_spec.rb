@@ -14,34 +14,42 @@ describe HetznerRobotApi::ServerManager do
 
   subject { described_class.new(client) }
 
-  describe "#server_list" do
+  describe "#create_server_list" do
     before do
       allow(client).to receive_message_chain(:server, :get) { servers }
     end
 
     context "no filters provided" do
       it "lists all servers" do
+        subject.create_server_list
+
         expect(subject.server_list).to eq(servers)
       end
     end
 
     context "filter is provided" do
       it "returns only a server with specific name" do
-        expect(subject.server_list(
-          :filters => { :server_name => server_d10_1.server.server_name }
-        )).to contain_exactly(server_d10_1)
+        subject.create_server_list(:filters => { :server_name => server_d10_1.server.server_name})
+
+        expect(subject.server_list).to contain_exactly(server_d10_1)
       end
 
       it "returns only servers from DC10" do
-        expect(subject.server_list(:filters => { :dc => "10" })).to eq([server_d10_1, server_d10_2])
+        subject.create_server_list(:filters => { :dc => "10" })
+
+        expect(subject.server_list).to eq([server_d10_1, server_d10_2])
       end
 
       it "handles ? matcher" do
-        expect(subject.server_list(:filters => { :server_name => "d10_?" })).to eq([server_d10_1, server_d10_2])
+        subject.create_server_list(:filters => { :server_name => "d10_?" })
+
+        expect(subject.server_list).to eq([server_d10_1, server_d10_2])
       end
 
       it "handles * matcher" do
-        expect(subject.server_list(:filters => { :server_name => "d*" })).to eq([server_d10_1, server_d10_2, server_d20_1])
+        subject.create_server_list(:filters => { :server_name => "d*" })
+
+        expect(subject.server_list).to eq([server_d10_1, server_d10_2, server_d20_1])
       end
     end
   end

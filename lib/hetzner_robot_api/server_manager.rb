@@ -6,6 +6,8 @@ module HetznerRobotApi
     class ServerTypeMismatchInList < StandardError; end
     class DuplicateServerName < StandardError; end
 
+    attr_reader :server_list
+
     def initialize(client)
       @client = client
     end
@@ -16,16 +18,16 @@ module HetznerRobotApi
     ## :filters => { :dc => "10" } : will return all servers from DC10
     ## Supports wildcards ? (a single character) and * (any character(s))
     ## or regular expressions
-    def server_list(options = {})
+    def create_server_list(options = {})
       defaults = {
         :filters => {}
       }
 
       @options = defaults.merge!(options)
 
-      @servers ||= @client.server.get
+      remote_servers ||= @client.server.get
 
-      apply_filters
+      @server_list = apply_filters(remote_servers)
     end
 
     def self.print_formatted_server_list(server_list, fields = [])
@@ -79,8 +81,8 @@ module HetznerRobotApi
 
     private
 
-    def apply_filters
-      @servers.select do |entry|
+    def apply_filters(server_list)
+      server_list.select do |entry|
         @options[:filters].all? do |field, value|
           value_regex = value
                           .gsub(/\?/, ".")
