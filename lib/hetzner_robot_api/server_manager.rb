@@ -46,10 +46,10 @@ module HetznerRobotApi
       puts table
     end
 
-    # Updates the server names with a format: "<prefix><start_number++>"
-    def update_server_names(server_list, options)
+    # Updates the server names with a format: "<prefix><start_number(+1)>"
+    def update_server_names(options)
       defaults = {
-        :prefix => "",
+        :prefix       => "",
         :start_number => nil
       }
 
@@ -57,23 +57,22 @@ module HetznerRobotApi
 
       raise ArgumentError.new("Options can't contain empty values!") if options.any? { |_, opt_v| opt_v.nil? || opt_v.to_s.empty? }
 
-      raise ServerTypeMismatchInList unless servers_same_type?(server_list)
+      raise ServerTypeMismatchInList unless servers_same_type?
 
-      # get last server matching the prefix and continue from that number?
-      prefix = options[:prefix]
-      postfix = options[:start_number]
-
+      prefix         = options[:prefix]
+      postfix        = options[:start_number]
       remote_servers = @client.server.get
 
-      server_list.each do |entry|
-        ip_address = entry.server.server_ip
+      @server_list.each do |entry|
+        ip_address   = entry.server.server_ip.gsub(/\./, "_")
         current_name = entry.server.server_name
-        new_name = "#{prefix}#{postfix}"
+        new_name     = "#{prefix}#{postfix}"
 
         raise DuplicateServerName.new("#{new_name} already exists!") if remote_servers.any? {|entry| entry.server.server_name == new_name}
 
-        # TODO: logger
-        @client.server.post(:server_name => new_name)
+        # TODO: logger, move to future Server class
+        puts "Updating name #{current_name} -> #{new_name} [#{ip_address}]"
+        @client.server.send(ip_address.to_sym).post(:server_name => new_name)
 
         postfix = postfix.next
       end
@@ -93,10 +92,10 @@ module HetznerRobotApi
       end
     end
 
-    def servers_same_type?(server_list)
-      product = server_list.first.server.product
+    def servers_same_type?
+      product = @server_list.first.server.product
 
-      server_list.all? {|entry| entry.server.product == product}
+      @server_list.all? {|entry| entry.server.product == product}
     end
 
   end

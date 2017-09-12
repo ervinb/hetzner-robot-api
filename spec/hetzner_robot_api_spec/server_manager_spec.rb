@@ -67,35 +67,41 @@ describe HetznerRobotApi::ServerManager do
       @options = { :prefix => "s", :start_number => 1}
 
       allow(client).to receive_message_chain(:server, :get) { servers }
-      allow(client).to receive_message_chain(:server, :post) { servers }
+      allow(client).to receive_message_chain(:server, :post)
+
+      subject.instance_variable_set(:@server_list, servers)
     end
 
     it "raises an exception when insufficient options are provided" do
-        expect{ subject.update_server_names(servers, {:prefix => "s", :start_number => nil}) }.to raise_error(ArgumentError)
+        expect{ subject.update_server_names({:prefix => "s", :start_number => nil}) }.to raise_error(ArgumentError)
     end
 
     context "server types differ in the list" do
       before do
-        @temp_server_list = servers
-        @temp_server_list << build(:server, :product => "PX1")
+        allow(server_d10_2).to receive_message_chain(:server, :product) { "PX1" }
       end
 
       it "raises a ServerTypeMismatchInList exception" do
-        expect{ subject.update_server_names(@temp_server_list, @options) }.to raise_error(HetznerRobotApi::ServerManager::ServerTypeMismatchInList)
+        expect{ subject.update_server_names(@options) }.to raise_error(HetznerRobotApi::ServerManager::ServerTypeMismatchInList)
       end
     end
 
     context "options are valid and there's a name conflict" do
       it "raises a DuplicateServerName exception" do
-        expect{ subject.update_server_names(servers, {:prefix => "d10_", :start_number => 1}) }.to raise_error(HetznerRobotApi::ServerManager::DuplicateServerName)
+        expect{ subject.update_server_names({:prefix => "d10_", :start_number => 1}) }.to raise_error(HetznerRobotApi::ServerManager::DuplicateServerName)
       end
     end
 
     context "options are valid and there is no name conflict" do
       it "updates the server names" do
-        expect(client.server).to receive(:post)
+        servers.each do |entry|
+          ip_address = entry.server.server_ip.gsub(/\./, "_")
+          allow(client.server).to receive_message_chain("#{ip_address}.post")
 
-        subject.update_server_names(servers, @options)
+          expect(client.server).to receive_message_chain("#{ip_address}.post")
+        end
+
+        subject.update_server_names(@options)
       end
     end
   end
