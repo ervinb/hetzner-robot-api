@@ -30,9 +30,9 @@ module HetznerRobotApi
       @server_list = apply_filters(remote_servers)
     end
 
-    def self.print_formatted_server_list(server_list, fields = [])
+    def print_formatted_server_list(fields = [])
       # TODO: handle empty fields > print all
-      table_rows = server_list.map do |entry|
+      table_rows = @server_list.map do |entry|
         row_data = []
 
         # TODO: handle missing fields
