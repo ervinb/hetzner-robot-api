@@ -40,7 +40,9 @@ module HetznerRobotApi
     end
 
     def execute(method)
+      # TODO: handle connection issues
       http_response = self.class.send(method, @proxy.url, @options)
+
       robot_response = RobotResponse.construct(http_response)
 
       @proxy = RobotProxy.new
