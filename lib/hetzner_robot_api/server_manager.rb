@@ -25,7 +25,7 @@ module HetznerRobotApi
 
       @options = defaults.merge!(options)
 
-      remote_servers ||= @client.server.get
+      remote_servers = @client.server.get
 
       @server_list = apply_filters(remote_servers)
     end
