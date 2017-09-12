@@ -91,7 +91,6 @@ module HetznerRobotApi
         raise DuplicateServerName.new("#{new_name} already exists!") if remote_servers.any? {|entry| entry.server.server_name == new_name}
 
         # TODO: logger, move to future Server class
-        puts "Updating name #{current_name} -> #{new_name} [#{ip_address}]"
         @client.server.send(ip_address.to_sym).post(:server_name => new_name)
 
         postfix = postfix.next

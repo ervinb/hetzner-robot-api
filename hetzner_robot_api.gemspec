@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "webmock", "~> 3.0"
   spec.add_development_dependency "factory_girl", "~> 4.0"
   spec.add_development_dependency "pry"
+  spec.add_development_dependency "byebug"
 
   spec.add_dependency "httparty"
   spec.add_dependency "json"

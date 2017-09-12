@@ -25,6 +25,7 @@ module HetznerRobotApi
     end
 
     def method_missing(http_method, *args, &block)
+      @proxy.append(http_method, args[0])
 
       @options = { :query => @proxy.options }
 
@@ -33,21 +34,21 @@ module HetznerRobotApi
       elsif http_method.to_s.match /\bget\b|\bpost\b/
         execute(http_method)
       else
-        @proxy.append(http_method, args[0])
-
         return self
       end
     end
 
     def execute(method)
       # TODO: handle connection issues
+      puts "[#{method.upcase} #{@proxy.url} #{@options.to_s}]"
+
       http_response = self.class.send(method, @proxy.url, @options)
 
       robot_response = RobotResponse.construct(http_response)
 
-      @proxy = RobotProxy.new
-
       robot_response
+    ensure
+      @proxy = RobotProxy.new
     end
   end
 end
