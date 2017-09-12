@@ -35,6 +35,14 @@ describe HetznerRobotApi::ServerManager do
       it "returns only servers from DC10" do
         expect(subject.server_list(:filters => { :dc => "10" })).to eq([server_d10_1, server_d10_2])
       end
+
+      it "handles ? matcher" do
+        expect(subject.server_list(:filters => { :server_name => "d10_?" })).to eq([server_d10_1, server_d10_2])
+      end
+
+      it "handles * matcher" do
+        expect(subject.server_list(:filters => { :server_name => "d*" })).to eq([server_d10_1, server_d10_2, server_d20_1])
+      end
     end
   end
 

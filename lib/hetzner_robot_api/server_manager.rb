@@ -27,6 +27,7 @@ module HetznerRobotApi
     ## Filters enable listing only servers containing specific field values:
     ## :filters => { :server_name => "s1" } : will only return server S1
     ## :filters => { :dc => "10" } : will return all servers from DC10
+    ## Supports wildcards ? (a single character) and * (any character(s))
     def server_list(options = {})
       defaults = {
         :filters => {}
@@ -41,11 +42,14 @@ module HetznerRobotApi
 
     private
 
-    # TODO: add option for regex matching
     def apply_filters
       @servers.select do |entry|
         @options[:filters].all? do |field, value|
-          entry.server.send(field.to_sym) == value
+          value_regex = value
+                          .gsub(/\?/, ".")
+                          .gsub(/\*/, ".*")
+
+          entry.server.send(field.to_sym) =~ /^#{value_regex}$/
         end
       end
     end
