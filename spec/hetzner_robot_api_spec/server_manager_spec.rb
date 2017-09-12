@@ -54,7 +54,7 @@ describe HetznerRobotApi::ServerManager do
     end
   end
 
-  describe "#print_formatted_server_list" do
+  describe "#print_server_table" do
     before do
       subject.instance_variable_set(:@server_list, servers)
     end
@@ -64,13 +64,13 @@ describe HetznerRobotApi::ServerManager do
       server_names = servers.map{|entry| entry.server.server_name}.join("|")
       output = /#{server_names}/
 
-      expect{ subject.print_formatted_server_list(fields) }.to output(output).to_stdout
+      expect{ subject.print_server_table(fields) }.to output(output).to_stdout
     end
 
     it "throws an exception if an invalid field is provided" do
       fields = [:server_name, :server_not_existing_field]
 
-      expect { subject.print_formatted_server_list(fields) }.to raise_error(ArgumentError)
+      expect { subject.print_server_table(fields) }.to raise_error(ArgumentError)
     end
   end
 

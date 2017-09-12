@@ -30,7 +30,7 @@ module HetznerRobotApi
       @server_list = apply_filters(remote_servers)
     end
 
-    def print_formatted_server_list(fields = [])
+    def print_server_table(fields = [])
       all_fields   = @server_list.first.server.to_h.keys
       all_headings = all_fields.map{ |f| f.to_s }
       headings     = []
@@ -58,7 +58,8 @@ module HetznerRobotApi
         :headings => headings,
         :rows     => table_rows,
         :style    => {
-          :border_y => ""
+          :border_y => "",
+          :border_i => ""
         }
       )
 
