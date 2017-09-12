@@ -16,7 +16,7 @@ describe HetznerRobotApi::ServerManager do
 
   describe "#server_list" do
     before do
-      client.stub_chain(:server, :get) { servers }
+      allow(client).to receive_message_chain(:server, :get) { servers }
     end
 
     context "no filters provided" do
@@ -51,6 +51,44 @@ describe HetznerRobotApi::ServerManager do
       server = server_d10_1.server
 
       expect{ described_class.print_formatted_server_list(servers, [:server_name, :server_ip]) }.to output(/#{server.server_name} \| #{server.server_ip}/).to_stdout
+    end
+  end
+
+  describe "#update_server_names" do
+    before do
+      @options = { :prefix => "s", :start_number => 1}
+
+      allow(client).to receive_message_chain(:server, :get) { servers }
+      allow(client).to receive_message_chain(:server, :post) { servers }
+    end
+
+    it "raises an exception when insufficient options are provided" do
+        expect{ subject.update_server_names(servers, {:prefix => "s", :start_number => nil}) }.to raise_error(ArgumentError)
+    end
+
+    context "server types differ in the list" do
+      before do
+        @temp_server_list = servers
+        @temp_server_list << build(:server, :product => "PX1")
+      end
+
+      it "raises a ServerTypeMismatchInList exception" do
+        expect{ subject.update_server_names(@temp_server_list, @options) }.to raise_error(HetznerRobotApi::ServerManager::ServerTypeMismatchInList)
+      end
+    end
+
+    context "options are valid and there's a name conflict" do
+      it "raises a DuplicateServerName exception" do
+        expect{ subject.update_server_names(servers, {:prefix => "d10_", :start_number => 1}) }.to raise_error(HetznerRobotApi::ServerManager::DuplicateServerName)
+      end
+    end
+
+    context "options are valid and there is no name conflict" do
+      it "updates the server names" do
+        expect(client.server).to receive(:post)
+
+        subject.update_server_names(servers, @options)
+      end
     end
   end
 end
