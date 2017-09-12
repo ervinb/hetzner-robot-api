@@ -60,9 +60,11 @@ describe HetznerRobotApi::ServerManager do
     end
 
     it "prints a table with the servers" do
-      server = server_d10_1.server
+      fields = [:server_name, :server_ip]
+      server_names = servers.map{|entry| entry.server.server_name}.join("|")
+      output = /#{server_names}/
 
-      expect{ subject.print_formatted_server_list([:server_name, :server_ip]) }.to output(/#{server.server_name} \| #{server.server_ip}/).to_stdout
+      expect{ subject.print_formatted_server_list(fields) }.to output(output).to_stdout
     end
   end
 

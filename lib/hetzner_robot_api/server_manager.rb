@@ -31,17 +31,33 @@ module HetznerRobotApi
     end
 
     def print_formatted_server_list(fields = [])
-      # TODO: handle empty fields > print all
+      all_fields = @server_list.first.server.to_h.keys
+      all_headings = all_fields.map{ |f| f.to_s }
+      headings = []
+
       table_rows = @server_list.map do |entry|
         row_data = []
 
-        # TODO: handle missing fields
-        fields.each{ |field| row_data << entry.server.send(field.to_sym) }
+        if fields.empty?
+          headings = all_headings
+
+          all_fields.each{ |field| row_data << entry.server.send(field) }
+        else
+          headings = fields.map{ |f| f.to_s }
+
+          fields.each{ |field| row_data << entry.server.send(field.to_sym) }
+        end
 
         row_data
       end
 
-      table = Terminal::Table.new(:rows => table_rows)
+      table = Terminal::Table.new(
+        :headings => headings,
+        :rows     => table_rows,
+        :style    => {
+          :border_y => ""
+        }
+      )
 
       puts table
     end
