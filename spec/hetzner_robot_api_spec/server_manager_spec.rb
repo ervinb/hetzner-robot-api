@@ -66,6 +66,12 @@ describe HetznerRobotApi::ServerManager do
 
       expect{ subject.print_formatted_server_list(fields) }.to output(output).to_stdout
     end
+
+    it "throws an exception if an invalid field is provided" do
+      fields = [:server_name, :server_not_existing_field]
+
+      expect { subject.print_formatted_server_list(fields) }.to raise_error(ArgumentError)
+    end
   end
 
   describe "#update_server_names" do

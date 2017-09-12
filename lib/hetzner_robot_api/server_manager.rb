@@ -31,9 +31,9 @@ module HetznerRobotApi
     end
 
     def print_formatted_server_list(fields = [])
-      all_fields = @server_list.first.server.to_h.keys
+      all_fields   = @server_list.first.server.to_h.keys
       all_headings = all_fields.map{ |f| f.to_s }
-      headings = []
+      headings     = []
 
       table_rows = @server_list.map do |entry|
         row_data = []
@@ -44,6 +44,9 @@ module HetznerRobotApi
           all_fields.each{ |field| row_data << entry.server.send(field) }
         else
           headings = fields.map{ |f| f.to_s }
+          invalid_headings = headings - all_headings
+
+          raise ArgumentError.new("Field(s) #{invalid_headings} don't exist!") if invalid_headings.length > 0
 
           fields.each{ |field| row_data << entry.server.send(field.to_sym) }
         end
