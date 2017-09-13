@@ -74,6 +74,20 @@ describe HetznerRobotApi::ServerManager do
     end
   end
 
+  describe "#server_list_to_format" do
+    before do
+      subject.instance_variable_set(:@server_list, servers)
+    end
+
+    it "outpus a YAML format by default" do
+      expect( YAML.parse(subject.server_list_to_format).any? ).to be_truthy
+    end
+
+    it "outputs JSON format" do
+      expect( JSON.parse(subject.server_list_to_format(:format => :json)).any? ).to be_truthy
+    end
+  end
+
   describe "#update_server_names" do
     before do
       @options = { :prefix => "s", :start_number => 1}

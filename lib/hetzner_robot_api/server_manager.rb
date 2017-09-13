@@ -66,6 +66,24 @@ module HetznerRobotApi
       puts table
     end
 
+    def server_list_to_format(options = {})
+      defaults = {
+        :format => :yaml,
+        :fields => [ :server_ip ]
+      }
+
+      options = defaults.merge!(options)
+
+      servers_hash = { "servers" => convert_servers_to_hashes(options[:fields]) }
+
+      case options[:format]
+      when :json
+        servers_hash.to_json
+      when :yaml
+        servers_hash.to_yaml
+      end
+    end
+
     # Updates the server names with a format: "<prefix><start_number(+1)>"
     def update_server_names(options)
       defaults = {
@@ -116,6 +134,25 @@ module HetznerRobotApi
       product = @server_list.first.server.product
 
       @server_list.all? {|entry| entry.server.product == product}
+    end
+
+    # TODO: to_h in future Server class
+    def convert_servers_to_hashes(fields)
+      result = []
+
+      @server_list.each do |entry|
+        server_hash = entry.server.to_h
+        server_name = entry.server.server_name
+        new_hash = { server_name => {} }
+
+        server_hash = server_hash.tap{ |sh| sh.delete(:server_name) }
+
+        fields.each{ |field| new_hash[server_name][field.to_s] = server_hash[field] }
+
+        result << new_hash
+      end
+
+      result
     end
 
   end
