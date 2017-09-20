@@ -30,6 +30,10 @@ module HetznerRobotApi
       @server_list = apply_filters(remote_servers)
     end
 
+    # Outputs a formatted table, containing all the servers
+    # with their fields. By default, all fields are
+    # shown. To show only some fields, pass an array
+    # of field names (as symbols).
     def print_server_table(fields = [])
       all_fields   = @server_list.first.server.to_h.keys
       all_headings = all_fields.map{ |f| f.to_s }
@@ -66,6 +70,37 @@ module HetznerRobotApi
       puts table
     end
 
+    # Converts the servers to a certain format. Each server is
+    # represented with its name and additional fields.
+    #
+    # Input parameters:
+    #   :format => :sym
+    #   :fields => []
+    #
+    # By default there's one additional field defined, :server_ip, and
+    # :yaml is the default format.
+    #
+    # Supported formats are:
+    # - :yaml
+    #   The servers are converted to YAML, in the format:
+    #
+    #   servers:
+    #     - server1:
+    #         field1: value
+    #         field2: value
+    #
+    # - :json
+    #   The servers are converted to JSON, in the format:
+    #
+    #   {"servers":[{"server1":{"field1":"value", "field2":"value"}}, ...]}
+    #
+    # - :list
+    #   The servers are converted to a simple list, consisting only
+    #   of the first field's value:
+    #
+    #   1.2.3.4
+    #   1.2.3.5
+    #
     def server_list_to_format(options = {})
       defaults = {
         :format => :yaml,
@@ -81,6 +116,10 @@ module HetznerRobotApi
         servers_hash.to_json
       when :yaml
         servers_hash.to_yaml
+      when :list
+        field = options[:fields].first
+
+        servers_hash["servers"].map{|entry| entry.values.first[field.to_s]}.join("\n")
       end
     end
 

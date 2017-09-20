@@ -86,6 +86,13 @@ describe HetznerRobotApi::ServerManager do
     it "outputs JSON format" do
       expect( JSON.parse(subject.server_list_to_format(:format => :json)).any? ).to be_truthy
     end
+
+    it "outputs a simple list" do
+      # "1.2.3.1\n1.2.3.2\n1.2.3.3"
+      output = servers.map{|entry| entry.server.server_ip}.join("\n")
+
+      expect( subject.server_list_to_format(:format => :list) ).to eq(output)
+    end
   end
 
   describe "#update_server_names" do
