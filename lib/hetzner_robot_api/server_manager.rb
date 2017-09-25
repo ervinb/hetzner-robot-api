@@ -30,6 +30,10 @@ module HetznerRobotApi
       @server_list = apply_filters(remote_servers)
     end
 
+    # Outputs a formatted table, containing all the servers
+    # with their fields. By default, all fields are
+    # shown. To show only some fields, pass an array
+    # of field names (as symbols).
     def print_server_table(fields = [])
       all_fields   = @server_list.first.server.to_h.keys
       all_headings = all_fields.map{ |f| f.to_s }
@@ -64,6 +68,59 @@ module HetznerRobotApi
       )
 
       puts table
+    end
+
+    # Converts the servers to a certain format. Each server is
+    # represented with its name and additional fields.
+    #
+    # Input parameters:
+    #   :format => :sym
+    #   :fields => []
+    #
+    # By default there's one additional field defined, :server_ip, and
+    # :yaml is the default format.
+    #
+    # Supported formats are:
+    # - :yaml
+    #   The servers are converted to YAML, in the format:
+    #
+    #   servers:
+    #     - server1:
+    #         field1: value
+    #         field2: value
+    #
+    # - :json
+    #   The servers are converted to JSON, in the format:
+    #
+    #   {"servers":[{"server1":{"field1":"value", "field2":"value"}}, ...]}
+    #
+    # - :list
+    #   The servers are converted to a simple list, consisting only
+    #   of the first field's value:
+    #
+    #   1.2.3.4
+    #   1.2.3.5
+    #
+    def server_list_to_format(options = {})
+      defaults = {
+        :format => :yaml,
+        :fields => [ :server_ip ]
+      }
+
+      options = defaults.merge!(options)
+
+      servers_hash = { "servers" => convert_servers_to_hashes(options[:fields]) }
+
+      case options[:format]
+      when :json
+        servers_hash.to_json
+      when :yaml
+        servers_hash.to_yaml
+      when :list
+        field = options[:fields].first
+
+        servers_hash["servers"].map{|entry| entry.values.first[field.to_s]}.join("\n")
+      end
     end
 
     # Updates the server names with a format: "<prefix><start_number(+1)>"
@@ -116,6 +173,25 @@ module HetznerRobotApi
       product = @server_list.first.server.product
 
       @server_list.all? {|entry| entry.server.product == product}
+    end
+
+    # TODO: to_h in future Server class
+    def convert_servers_to_hashes(fields)
+      result = []
+
+      @server_list.each do |entry|
+        server_hash = entry.server.to_h
+        server_name = entry.server.server_name
+        new_hash = { server_name => {} }
+
+        server_hash = server_hash.tap{ |sh| sh.delete(:server_name) }
+
+        fields.each{ |field| new_hash[server_name][field.to_s] = server_hash[field] }
+
+        result << new_hash
+      end
+
+      result
     end
 
   end

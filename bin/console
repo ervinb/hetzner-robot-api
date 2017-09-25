@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "byebug"
 require "bundler/setup"
 require "hetzner_robot_api"
 
