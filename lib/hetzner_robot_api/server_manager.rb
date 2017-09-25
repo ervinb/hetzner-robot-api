@@ -141,17 +141,56 @@ module HetznerRobotApi
       remote_servers = @client.server.get
 
       @server_list.each do |entry|
-        # convert 1.2.3.4 > 1_2_3_4 so that it can be sent as a method
-        ip_address   = entry.server.server_ip.gsub(/\./, "_")
+        ip_address   = convert_ip_to_sym(entry.server.server_ip)
         current_name = entry.server.server_name
         new_name     = "#{prefix}#{postfix}"
 
         raise DuplicateServerName.new("#{new_name} already exists!") if remote_servers.any? {|entry| entry.server.server_name == new_name}
 
         # TODO: logger, move to future Server class
-        @client.server.send(ip_address.to_sym).post(:server_name => new_name)
+        @client.server.send(ip_address).post(:server_name => new_name)
 
         postfix = postfix.next
+      end
+    end
+
+    # Cancells all the servers in the list. By default, the cancellation
+    # date is set to the earliest possible, but it can be modified with the
+    # date option.
+    #
+    # eg. cancel_servers(:cancellation_date => '2017-03-14')
+    #
+    def cancel_servers(options = {})
+      defaults = {
+        :cancellation_date => nil
+      }
+
+      options = defaults.merge(options)
+
+      date_format = "%Y-%m-%d"
+
+      @server_list.each do |entry|
+        ip_address = convert_ip_to_sym(entry.server.server_ip)
+
+        cancellation_info = @client.server.send(ip_address).cancellation.get
+        earliest_cancellation = cancellation_info.cancellation.earliest_cancellation_date
+
+        earliest_cancellation_date = Date.strptime(earliest_cancellation, date_format)
+        requested_date = if options[:date].nil?
+                           Time.now.to_date
+                         else
+                           Date.strptime(options[:date], date_format)
+                         end
+
+        cancellation_date = requested_date > earliest_cancellation_date ? requested_date : earliest_cancellation_date
+
+        if cancellation_info.cancellation.cancelled
+          puts "#{entry.server.server_name}: already cancelled, skipping ..."
+        else
+          cancellation_request = @client.server.send(ip_address).cancellation.post(:cancellation_date => cancellation_date.to_s)
+
+          puts "#{entry.server.server_name}: #{cancellation_request}"
+        end
       end
     end
 
@@ -167,6 +206,12 @@ module HetznerRobotApi
           entry.server.send(field.to_sym) =~ /^#{value_regex}$/
         end
       end
+    end
+
+    # convert 1.2.3.4 > 1_2_3_4 so that it can be sent as a method to the client
+    # TODO: to helper module
+    def convert_ip_to_sym(ip)
+       ip.gsub(/\./, "_").to_sym
     end
 
     def servers_same_type?
