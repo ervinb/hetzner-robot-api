@@ -128,7 +128,8 @@ describe HetznerRobotApi::ServerManager do
     context "options are valid and there is no name conflict" do
       it "updates the server names" do
         servers.each do |entry|
-          ip_address = entry.server.server_ip.gsub(/\./, "_")
+          ip_address = convert_ip_to_sym(entry.server.server_ip)
+
           allow(client.server).to receive_message_chain("#{ip_address}.post")
 
           expect(client.server).to receive_message_chain("#{ip_address}.post")
@@ -137,5 +138,50 @@ describe HetznerRobotApi::ServerManager do
         subject.update_server_names(@options)
       end
     end
+  end
+
+  describe "cancel_servers" do
+    before do
+      @earliest_cancellation_date = Time.now.to_date.to_s
+      @fake_response = double("RobotResponse").as_null_object
+
+      subject.instance_variable_set(:@server_list, servers)
+    end
+
+    context "servers are not yet cancelled" do
+      it "cancels the servers in the list" do
+        servers.each do |entry|
+          ip_address = convert_ip_to_sym(entry.server.server_ip)
+
+          allow(@fake_response).to receive_message_chain("cancellation.cancelled") { false }
+          allow(client).to receive_message_chain("server.#{ip_address}.cancellation.get") { @fake_response }
+          allow(@fake_response).to receive_message_chain("cancellation.earliest_cancellation_date") { @earliest_cancellation_date }
+
+          expect(client).to receive_message_chain("server.#{ip_address}.cancellation.post").with({:cancellation_date => @earliest_cancellation_date})
+        end
+
+        subject.cancel_servers
+      end
+    end
+
+    context "servers are already cancelled" do
+      it "doesn't cancel the servers in the list" do
+        servers.each do |entry|
+          ip_address = convert_ip_to_sym(entry.server.server_ip)
+
+          allow(@fake_response).to receive_message_chain("cancellation.cancelled") { true }
+          allow(client).to receive_message_chain("server.#{ip_address}.cancellation.get") { @fake_response }
+          allow(@fake_response).to receive_message_chain("cancellation.earliest_cancellation_date") { @earliest_cancellation_date }
+
+          expect(client).to receive("server")
+        end
+
+        subject.cancel_servers
+      end
+    end
+  end
+
+  def convert_ip_to_sym(ip)
+     ip.gsub(/\./, "_").to_sym
   end
 end
