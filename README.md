@@ -1,4 +1,6 @@
 # [WIP] Hetzner Robot API wrapper
+[![Build
+Status](https://semaphoreci.com/api/v1/ervinb/hetzner-robot-api/branches/master/badge.svg)](https://semaphoreci.com/ervinb/hetzner-robot-api)
 
 CLI tool which provides convenience methods to manage Hetzner servers through
 their [API](https://robot.your-server.de/doc/webservice/en.html).
