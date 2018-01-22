@@ -1,49 +1,36 @@
-# HetznerRobotApi
+# [WIP] Hetzner Robot API wrapper
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/hetzner_robot_api`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'hetzner_robot_api'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install hetzner_robot_api
+CLI tool which provides convenience methods to manage Hetzner servers through
+their [API](https://robot.your-server.de/doc/webservice/en.html).
 
 ## Usage
 
-The main functionality is tied to the ser
+Run `bin/console` and read the instructions below.
+
 
 ### Initiating a connection to Hetzner
 
-- initialize the client
+Authenticate to Hetzner.
 
 ```
 client = HetznerRobotApi::Client.new "username", "password"
 ```
+
+TODO: read credentials from a config file or the ENV
+
 
 ### Server management
 
 Once the client is created, the server manager instance can be used to perform
-action on the servers.
+actions on the servers.
 
 ```
-client = HetznerRobotApi::Client.new "username", "password"
-sm = HetznerRobotApi::ServerManager.new(client)
+pry(main)> client = HetznerRobotApi::Client.new "username", "password"
+pry(main)> sm = HetznerRobotApi::ServerManager.new(client)
 ```
 
-The section below, describe what can actions can be performed with the server
-manager instance.
+The section below describes what actions can be performed with the server
+manager.
 
 #### Querying servers
 
@@ -61,8 +48,8 @@ fields](https://robot.your-server.de/doc/webservice/en.html#server) on Hetzner:
 - `cancelled`
 - `paid_until`
 
-The fields are handled dynamically on our side, so if Hetzner introduces a new
-one, no change is needed on the tooling side.
+The fields are handled dynamically, so if Hetzner introduces a new
+one, no change is needed -- it can be used right away.
 
 ```
 # Fetch all servers which have a blank name and are of type EX41S-SSD
@@ -95,9 +82,10 @@ pry(main)> servers = sm.fetch_server_list(:filters => {:server_name => "", :prod
    ]
 ```
 
-This raw array can be accessed with `sm.server_list`.
+This raw `OpenStruct` array can be accessed with `sm.server_list`.
 
 Queries also support wildcards `?` and `*` in any of the fields.
+
 ```
 # fetch all servers from the EX line
 pry(main)> servers = sm.fetch_server_list(:filters => {:product => "EX?"})
@@ -115,19 +103,20 @@ pry(main)> sm.print_server_table
 -------------------------------------------------------------------------------------------------------------------------------
  server_ip        server_number  server_name  product    dc        traffic  flatrate  status  throttled  cancelled  paid_until
 -------------------------------------------------------------------------------------------------------------------------------
- 12.34.56.78  797382         bx87         EX41S-SSD  FSN1-DC8  30 TB    true      ready   false      false      2018-01-22
+ 12.34.56.78      797382         bx87         EX41S-SSD  FSN1-DC8  30 TB    true      ready   false      false      2018-01-22
  12.34.56.79      797536         bx88         EX41S-SSD  FSN1-DC1  30 TB    true      ready   false      false      2018-01-22
 -------------------------------------------------------------------------------------------------------------------------------
 ```
 
 By default, all available fields are shown, but this can be customized, by
 using an array of field names as a parameter:
+
 ```
 pry(main)> sm.print_server_table(["server_ip", "server_name"])
 ------------------------------
  server_ip        server_name
 ------------------------------
- 12.34.56.78  bx87
+ 12.34.56.78      bx87
  12.34.56.79      bx88
 ------------------------------
 ```
