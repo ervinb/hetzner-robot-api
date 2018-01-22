@@ -149,6 +149,7 @@ module HetznerRobotApi
 
         # TODO: logger, move to future Server class
         @client.server.send(ip_address).post(:server_name => new_name)
+        entry.server.server_name = new_name
 
         postfix = postfix.next
       end
