@@ -160,6 +160,19 @@ pry(main)> puts sm.server_list_to_format(:format => :list)
 12.34.56.79
 ```
 
+Print multiple fields:
+
+```
+pry(main)> puts sm.server_list_to_format(:fields => [:server_ip, :dc])
+---
+servers:
+- bx50:
+  server_ip: 138.201.131.94
+  dc: FSN1-DC8
+```
+Note that the `:list` format prints only the first field, and the default is
+`:server_ip`.
+
 
 #### Renaming servers
 
